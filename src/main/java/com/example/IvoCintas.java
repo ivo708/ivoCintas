@@ -9,7 +9,7 @@ import net.minecraft.registry.Registries;
 import net.minecraft.registry.Registry;
 
 public class IvoCintas implements ModInitializer {
-    public static final Block Impulsor_Block = new Impulsor(Impulsor.Settings.create().strength(4.0f));
+	public static final Block Impulsor_Block = new Impulsor(Block.Settings.create().strength(4.0f));
 
     @Override
     public void onInitialize() {
