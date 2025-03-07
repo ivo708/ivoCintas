@@ -11,14 +11,24 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ImpulsorHandler {
-    private static final Map<UUID, Vec3d> pushingPlayers = new ConcurrentHashMap<>();
+    private static final Map<UUID, PushData> pushingPlayers = new ConcurrentHashMap<>();
+
+    public static class PushData {
+        public final Vec3d pushVec;
+        public final double centerCoord; // Coordenada fija (X o Z) del centro del bloque
+
+        public PushData(Vec3d pushVec, double centerCoord) {
+            this.pushVec = pushVec;
+            this.centerCoord = centerCoord;
+        }
+    }
 
     public static void initialize() {
         ServerTickEvents.END_SERVER_TICK.register(server -> {
             server.getPlayerManager().getPlayerList().forEach(player -> {
                 UUID playerId = player.getUuid();
                 if (pushingPlayers.containsKey(playerId)) {
-                    Vec3d pushVec = pushingPlayers.get(playerId);
+                    PushData pushData = pushingPlayers.get(playerId);
                     World world = player.getEntityWorld();
 
                     // Posición actual del jugador
@@ -26,32 +36,35 @@ public class ImpulsorHandler {
                     double playerY = player.getY();
                     double playerZ = player.getZ();
 
-                    // Coordenadas del siguiente paso
-                    double nextX = playerX + pushVec.x;
-                    double nextZ = playerZ + pushVec.z;
+                    // Nueva posición basada en el vector de empuje
+                    double newX = playerX + pushData.pushVec.x;
+                    double newZ = playerZ + pushData.pushVec.z;
 
-                    // Definir las alturas de las piernas y el torso
-                    double legHeight = playerY + 0.5; // Altura de las piernas
-                    double torsoHeight = playerY + 1.5; // Altura del torso
+                    // Mantener la alineación en la coordenada perpendicular
+                    if (pushData.pushVec.x != 0) {
+                        // Movimiento en X; mantener Z alineada al centro
+                        newZ = pushData.centerCoord;
+                    } else if (pushData.pushVec.z != 0) {
+                        // Movimiento en Z; mantener X alineada al centro
+                        newX = pushData.centerCoord;
+                    }
 
-                    // Crear posiciones de bloque para las piernas y el torso
-                    BlockPos legPos = new BlockPos((int) nextX, (int) legHeight, (int) nextZ);
-                    BlockPos torsoPos = new BlockPos((int) nextX, (int) torsoHeight, (int) nextZ);
-
-                    // Obtener los estados de bloque en las posiciones de las piernas y el torso
+                    // Comprobamos colisiones
+                    double legHeight = playerY + 0.5;
+                    double torsoHeight = playerY + 1.5;
+                    BlockPos legPos = new BlockPos((int) (newX+(4*pushData.pushVec.x)), (int) legHeight, (int) (newZ+(4*pushData.pushVec.z)));
+                    BlockPos torsoPos = new BlockPos((int) (newX+(4*pushData.pushVec.x)), (int) torsoHeight, (int) (newZ+(4*pushData.pushVec.z)));
                     BlockState legState = world.getBlockState(legPos);
                     BlockState torsoState = world.getBlockState(torsoPos);
-
-                    // Verificar si hay colisiones en las posiciones de las piernas o el torso
                     boolean legCollision = !legState.getCollisionShape(world, legPos).isEmpty();
                     boolean torsoCollision = !torsoState.getCollisionShape(world, torsoPos).isEmpty();
 
-                    // Si hay colisión en las piernas o el torso, detener el empuje
                     if (legCollision || torsoCollision) {
+                        // Al detectar colisión, se detiene el impulso
                         pushingPlayers.remove(playerId);
                     } else {
-                        // Aplicar la velocidad de empuje al jugador
-                        player.setVelocity(pushVec);
+                        // Teletransportamos al jugador a la nueva posición
+                        player.teleport(player.getServerWorld(), newX, playerY, newZ, player.getYaw(), player.getPitch());
                     }
                 }
             });
@@ -59,6 +72,15 @@ public class ImpulsorHandler {
     }
 
     public static void addPlayer(PlayerEntity player, Vec3d pushVec) {
-        pushingPlayers.put(player.getUuid(), pushVec);
+        double centerCoord;
+        if (pushVec.x != 0) {
+            // Movimiento en X; fijar Z al centro del bloque actual
+            centerCoord = Math.floor(player.getZ()) + 0.5;
+        } else {
+            // Movimiento en Z; fijar X al centro del bloque actual
+            centerCoord = Math.floor(player.getX()) + 0.5;
+        }
+        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord));
     }
 }
+

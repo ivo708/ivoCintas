@@ -1,5 +1,8 @@
 package com.example;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import net.fabricmc.api.ModInitializer;
 import net.minecraft.item.BlockItem;
 import net.minecraft.item.Item;
@@ -10,6 +13,7 @@ import net.minecraft.registry.Registry;
 
 public class IvoCintas implements ModInitializer {
 	public static final Block Impulsor_Block = new Impulsor(Block.Settings.create().strength(4.0f));
+	public static final Logger LOGGER = LoggerFactory.getLogger("IvoCintas");
 
     @Override
     public void onInitialize() {

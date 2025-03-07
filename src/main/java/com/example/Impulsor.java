@@ -6,6 +6,8 @@ import net.minecraft.block.BlockState;
 import net.minecraft.block.HorizontalFacingBlock;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -24,7 +26,6 @@ public class Impulsor extends HorizontalFacingBlock {
         this.setDefaultState(this.getDefaultState().with(FACING, Direction.NORTH));
     }
     
-    // Se añade la propiedad FACING al estado del bloque
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(FACING);
@@ -43,12 +44,23 @@ public class Impulsor extends HorizontalFacingBlock {
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
         if (!world.isClient && entity instanceof PlayerEntity) {
+            IvoCintas.LOGGER.info("PISANDO");
+            ServerPlayerEntity player = (ServerPlayerEntity) entity;
+            
             // Se obtiene la dirección en la que apunta el bloque según su propiedad FACING
             Direction pushDirection = state.get(FACING);
-            // Calculamos el vector de empuje en esa dirección, con magnitud 0.5
+            // Magnitud base del empuje (0.5 para un empuje visible; ajústalo si es necesario)
+            double pushMagnitude = 0.2;
             Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ())
-                    .normalize().multiply(0.5);
-            ImpulsorHandler.addPlayer((PlayerEntity) entity, pushVec);
+                    .normalize().multiply(pushMagnitude);
+            
+            // Se calcula el centro del bloque pisado (para alinear al jugador)
+            double centerX = pos.getX() + 0.5;
+            double centerZ = pos.getZ() + 0.5;
+            player.teleport(player.getServerWorld(), centerX, player.getY(), centerZ, player.getYaw(), player.getPitch());
+
+            // Registramos al jugador para que se impulse y se alinee hacia el centro
+            ImpulsorHandler.addPlayer(player, pushVec);
         }
         super.onSteppedOn(world, pos, state, entity);
     }
