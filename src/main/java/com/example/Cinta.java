@@ -1,6 +1,5 @@
 package com.example;
 
-import com.example.ImpulsorHandler.PushData;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.block.Block;
 import net.minecraft.block.BlockState;
@@ -10,7 +9,6 @@ import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.ItemPlacementContext;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.server.world.ServerWorld;
 import net.minecraft.state.StateManager;
 import net.minecraft.state.property.Properties;
 import net.minecraft.util.math.BlockPos;
@@ -22,10 +20,10 @@ import net.minecraft.world.BlockView;
 import net.minecraft.world.World;
 import net.minecraft.block.ShapeContext;
 
-public class Impulsor extends HorizontalFacingBlock {
+public class Cinta extends HorizontalFacingBlock {
     private static final VoxelShape SHAPE = Block.createCuboidShape(0, 0, 0, 16, 4, 16);
 
-    public Impulsor(Settings settings) {
+    public Cinta(Settings settings) {
         super(settings);
         // Estado inicial orientado al norte
         this.setDefaultState(this.getDefaultState().with(FACING, Direction.NORTH));
@@ -58,11 +56,11 @@ public class Impulsor extends HorizontalFacingBlock {
             IvoCintas.LOGGER.info("PISANDO");
             boolean sameAsStart=true;
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
-            if (ImpulsorHandler.pushingPlayers.containsKey(player.getUuid())) {
-            	sameAsStart= ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos==pos;
+            if (CintaHandler.pushingPlayers.containsKey(player.getUuid())) {
+            	sameAsStart= CintaHandler.pushingPlayers.get(player.getUuid()).pos==pos;
                 
             }
-            if(!ImpulsorHandler.pushingPlayers.containsKey(player.getUuid()) || !sameAsStart){
+            if(!CintaHandler.pushingPlayers.containsKey(player.getUuid()) || !sameAsStart){
 	            // Se obtiene la dirección en la que apunta el bloque según su propiedad FACING
 	            Direction pushDirection = state.get(FACING);
 	            // Magnitud base del empuje (0.5 para un empuje visible; ajústalo si es necesario)
@@ -91,7 +89,7 @@ public class Impulsor extends HorizontalFacingBlock {
 	
 	            IvoCintas.LOGGER.info("PUSHVEC: x="+pushVec.x+", y="+pushVec.y+", z="+pushVec.z);
 	            // Registramos al jugador para que se impulse y se alinee hacia el centro
-	            ImpulsorHandler.addPlayer(player, pushVec,pos);
+	            CintaHandler.addPlayer(player, pushVec,pos);
 	        }
         }
         super.onSteppedOn(world, pos, state, entity);

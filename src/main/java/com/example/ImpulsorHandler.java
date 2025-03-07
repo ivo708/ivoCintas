@@ -11,15 +11,17 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ImpulsorHandler {
-    private static final Map<UUID, PushData> pushingPlayers = new ConcurrentHashMap<>();
+    public static final Map<UUID, PushData> pushingPlayers = new ConcurrentHashMap<>();
 
     public static class PushData {
         public final Vec3d pushVec;
         public final double centerCoord; // Coordenada fija (X o Z) del centro del bloque
+        public final BlockPos pos;
 
-        public PushData(Vec3d pushVec, double centerCoord) {
+        public PushData(Vec3d pushVec, double centerCoord,BlockPos pos) {
             this.pushVec = pushVec;
             this.centerCoord = centerCoord;
+			this.pos = pos;
         }
     }
 
@@ -48,30 +50,31 @@ public class ImpulsorHandler {
                         // Movimiento en Z; mantener X alineada al centro
                         newX = pushData.centerCoord;
                     }
-
-                    // Comprobamos colisiones
-                    double legHeight = playerY + 0.5;
-                    double torsoHeight = playerY + 1.5;
-                    BlockPos legPos = new BlockPos((int) (newX+(4*pushData.pushVec.x)), (int) legHeight, (int) (newZ+(4*pushData.pushVec.z)));
-                    BlockPos torsoPos = new BlockPos((int) (newX+(4*pushData.pushVec.x)), (int) torsoHeight, (int) (newZ+(4*pushData.pushVec.z)));
+                    
+                    int offsetX = (int) Math.signum(pushData.pushVec.x);
+                    int offsetZ = (int) Math.signum(pushData.pushVec.z);
+                    BlockPos legPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY), (int)Math.floor(playerZ) + offsetZ);
+                    BlockPos torsoPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY) + 1, (int)Math.floor(playerZ) + offsetZ);
                     BlockState legState = world.getBlockState(legPos);
                     BlockState torsoState = world.getBlockState(torsoPos);
                     boolean legCollision = !legState.getCollisionShape(world, legPos).isEmpty();
                     boolean torsoCollision = !torsoState.getCollisionShape(world, torsoPos).isEmpty();
 
-                    if (legCollision || torsoCollision) {
-                        // Al detectar colisión, se detiene el impulso
+                    if (legCollision && torsoCollision) {
+                        IvoCintas.LOGGER.info("PARED DETECTADA EN: x="+ legPos.getX()+", y="+ legPos.getY()+", z="+ legPos.getZ());
+                        IvoCintas.LOGGER.info("PARED DETECTADA EN: x="+ torsoPos.getX()+", y="+ torsoPos.getY()+", z="+ torsoPos.getZ());
+                        player.teleport(player.getServerWorld(), newX, playerY, newZ, player.getYaw(), player.getPitch());
                         pushingPlayers.remove(playerId);
                     } else {
                         // Teletransportamos al jugador a la nueva posición
                         player.teleport(player.getServerWorld(), newX, playerY, newZ, player.getYaw(), player.getPitch());
                     }
                 }
-            });
+            } );
         });
     }
 
-    public static void addPlayer(PlayerEntity player, Vec3d pushVec) {
+    public static void addPlayer(PlayerEntity player, Vec3d pushVec,BlockPos pos) {
         double centerCoord;
         if (pushVec.x != 0) {
             // Movimiento en X; fijar Z al centro del bloque actual
@@ -80,7 +83,7 @@ public class ImpulsorHandler {
             // Movimiento en Z; fijar X al centro del bloque actual
             centerCoord = Math.floor(player.getX()) + 0.5;
         }
-        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord));
+        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord,pos));
     }
 }
 

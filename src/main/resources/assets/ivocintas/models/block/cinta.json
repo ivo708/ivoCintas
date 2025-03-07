@@ -3,8 +3,8 @@
 	"parent": "block/cube_all",
 	"texture_size": [32, 32],
 	"textures": {
-		"2": "ivocintas:block/impulsor",
-		"particle": "impulsor"
+		"2": "ivocintas:block/cinta",
+		"particle": "cinta"
 	},
 	"elements": [
 		{

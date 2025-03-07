@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ivocintas:block/cinta", "y": 0 },
+    "facing=south": { "model": "ivocintas:block/cinta", "y": 180 },
+    "facing=west":  { "model": "ivocintas:block/cinta", "y": 270 },
+    "facing=east":  { "model": "ivocintas:block/cinta", "y": 90 }
+  }
+}

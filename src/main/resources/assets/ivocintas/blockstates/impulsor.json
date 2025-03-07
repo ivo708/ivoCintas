@@ -1,8 +1,8 @@
 {
   "variants": {
-    "facing=north": { "model": "ivocintas:impulsor", "y": 0 },
-    "facing=south": { "model": "ivocintas:impulsor", "y": 180 },
-    "facing=west":  { "model": "ivocintas:impulsor", "y": 90 },
-    "facing=east":  { "model": "ivocintas:impulsor", "y": 270 }
+    "facing=north": { "model": "ivocintas:block/impulsor", "y": 0 },
+    "facing=south": { "model": "ivocintas:block/impulsor", "y": 180 },
+    "facing=west":  { "model": "ivocintas:block/impulsor", "y": 270 },
+    "facing=east":  { "model": "ivocintas:block/impulsor", "y": 90 }
   }
 }
