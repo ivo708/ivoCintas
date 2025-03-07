@@ -1,0 +1,8 @@
+{
+  "variants": {
+    "facing=north": { "model": "ivocintas:impulsor", "y": 0 },
+    "facing=south": { "model": "ivocintas:impulsor", "y": 180 },
+    "facing=west":  { "model": "ivocintas:impulsor", "y": 90 },
+    "facing=east":  { "model": "ivocintas:impulsor", "y": 270 }
+  }
+}
