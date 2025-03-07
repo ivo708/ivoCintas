@@ -24,7 +24,7 @@ public class Impulsor extends HorizontalFacingBlock {
         this.setDefaultState(this.getDefaultState().with(FACING, Direction.NORTH));
     }
     
-    // Es importante añadir la propiedad FACING al estado del bloque.
+    // Se añade la propiedad FACING al estado del bloque
     @Override
     protected void appendProperties(StateManager.Builder<Block, BlockState> builder) {
         builder.add(FACING);
@@ -43,8 +43,9 @@ public class Impulsor extends HorizontalFacingBlock {
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
         if (!world.isClient && entity instanceof PlayerEntity) {
-            // Se obtiene la dirección en la que apunta el bloque (la propiedad FACING)
+            // Se obtiene la dirección en la que apunta el bloque según su propiedad FACING
             Direction pushDirection = state.get(FACING);
+            // Calculamos el vector de empuje en esa dirección, con magnitud 0.5
             Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ())
                     .normalize().multiply(0.5);
             ImpulsorHandler.addPlayer((PlayerEntity) entity, pushVec);
