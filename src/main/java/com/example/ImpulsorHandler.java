@@ -4,6 +4,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.block.BlockState;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.util.math.BlockPos;
+import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.Vec3d;
 import net.minecraft.world.World;
 import java.util.Map;
@@ -17,11 +18,12 @@ public class ImpulsorHandler {
         public final Vec3d pushVec;
         public final double centerCoord; // Coordenada fija (X o Z) del centro del bloque
         public final BlockPos pos;
+        public int tickCount = 0; // Contador de ticks desde que se añade el jugador
 
-        public PushData(Vec3d pushVec, double centerCoord,BlockPos pos) {
+        public PushData(Vec3d pushVec, double centerCoord, BlockPos pos) {
             this.pushVec = pushVec;
             this.centerCoord = centerCoord;
-			this.pos = pos;
+            this.pos = pos;
         }
     }
 
@@ -32,49 +34,69 @@ public class ImpulsorHandler {
                 if (pushingPlayers.containsKey(playerId)) {
                     PushData pushData = pushingPlayers.get(playerId);
                     World world = player.getEntityWorld();
-
-                    // Posición actual del jugador
                     double playerX = player.getX();
                     double playerY = player.getY();
                     double playerZ = player.getZ();
+                    float playerYaw = player.getYaw();
+                    float totalTicks=7;
+                	IvoCintas.LOGGER.info("Ticks: "+pushData.tickCount);
 
-                    // Nueva posición basada en el vector de empuje
-                    double newX = playerX + pushData.pushVec.x;
-                    double newZ = playerZ + pushData.pushVec.z;
+                    if (pushData.tickCount < totalTicks) {
+        	            double targetX = pushData.pos.getX() + 0.5;
+        	            double targetZ = pushData.pos.getZ() + 0.5;
+                        float targetYaw = (float)(Math.atan2(pushData.pushVec.z, pushData.pushVec.x) * (180F / Math.PI)) - 90.0F;
+                        if(targetYaw<-90) {
+                        	targetYaw+=360;
+                        }
+        	                double progress = (double) pushData.tickCount / totalTicks;
+        	                double interpolatedX = MathHelper.lerp(progress, playerX, targetX);
+        	                double interpolatedZ = MathHelper.lerp(progress, playerZ, targetZ);
+        	            	IvoCintas.LOGGER.info("TargetYaw: "+targetYaw);
+        	                double interpolatedYaw = MathHelper.lerp(progress, playerYaw, targetYaw);
 
-                    // Mantener la alineación en la coordenada perpendicular
-                    if (pushData.pushVec.x != 0) {
-                        // Movimiento en X; mantener Z alineada al centro
-                        newZ = pushData.centerCoord;
-                    } else if (pushData.pushVec.z != 0) {
-                        // Movimiento en Z; mantener X alineada al centro
-                        newX = pushData.centerCoord;
-                    }
-                    
-                    int offsetX = (int) Math.signum(pushData.pushVec.x);
-                    int offsetZ = (int) Math.signum(pushData.pushVec.z);
-                    BlockPos legPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY), (int)Math.floor(playerZ) + offsetZ);
-                    BlockPos torsoPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY) + 1, (int)Math.floor(playerZ) + offsetZ);
-                    BlockState legState = world.getBlockState(legPos);
-                    BlockState torsoState = world.getBlockState(torsoPos);
-                    boolean legCollision = !legState.getCollisionShape(world, legPos).isEmpty();
-                    boolean torsoCollision = !torsoState.getCollisionShape(world, torsoPos).isEmpty();
-
-                    if (legCollision && torsoCollision) {
-                        IvoCintas.LOGGER.info("PARED DETECTADA EN: x="+ legPos.getX()+", y="+ legPos.getY()+", z="+ legPos.getZ());
-                        IvoCintas.LOGGER.info("PARED DETECTADA EN: x="+ torsoPos.getX()+", y="+ torsoPos.getY()+", z="+ torsoPos.getZ());
-                        player.teleport(player.getServerWorld(), newX, playerY, newZ, player.getYaw(), player.getPitch());
-                        pushingPlayers.remove(playerId);
+        	                
+                        player.teleport(player.getServerWorld(), interpolatedX, playerY, interpolatedZ, (float) interpolatedYaw, 0);
+                        pushData.tickCount++;
                     } else {
-                        // Teletransportamos al jugador a la nueva posición
-                        player.teleport(player.getServerWorld(), newX, playerY, newZ, player.getYaw(), player.getPitch());
+                        // Nueva posición basada en el vector de empuje
+                        double newX = playerX + pushData.pushVec.x;
+                        double newZ = playerZ + pushData.pushVec.z;
+
+                        // Mantener la alineación en la coordenada perpendicular
+                        if (pushData.pushVec.x != 0) {
+                            // Movimiento en X; mantener Z alineada al centro
+                            newZ = pushData.pos.getZ()+0.5;
+                        } else if (pushData.pushVec.z != 0) {
+                            // Movimiento en Z; mantener X alineada al centro
+                            newX = pushData.pos.getX()+0.5;
+                        }
+                        
+                        int offsetX = (int) Math.signum(pushData.pushVec.x);
+                        int offsetZ = (int) Math.signum(pushData.pushVec.z);
+                        BlockPos legPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY), (int)Math.floor(playerZ) + offsetZ);
+                        BlockPos torsoPos = new BlockPos((int)Math.floor(playerX) + offsetX, (int)Math.floor(playerY) + 1, (int)Math.floor(playerZ) + offsetZ);
+                        BlockState legState = world.getBlockState(legPos);
+                        BlockState torsoState = world.getBlockState(torsoPos);
+                        boolean legCollision = !legState.getCollisionShape(world, legPos).isEmpty();
+                        boolean torsoCollision = !torsoState.getCollisionShape(world, torsoPos).isEmpty();
+                        float newYaw = (float)(Math.atan2(pushData.pushVec.z, pushData.pushVec.x) * (180F / Math.PI)) - 90.0F;
+
+                        if (legCollision && torsoCollision) {
+                        	IvoCintas.LOGGER.info("PARED DETECTADA");
+
+                        	player.teleport(player.getServerWorld(), newX+ (pushData.pushVec.x*0.66), playerY, newZ+(pushData.pushVec.z*0.66), newYaw, 0);
+                            pushingPlayers.remove(playerId);
+                        } else {
+                            // Teletransportamos al jugador a la nueva posición
+                        	player.teleport(player.getServerWorld(),newX, playerY, newZ, newYaw, 0);
+                        }
                     }
                 }
-            } );
+            });
         });
     }
 
-    public static void addPlayer(PlayerEntity player, Vec3d pushVec,BlockPos pos) {
+    public static void addPlayer(PlayerEntity player, Vec3d pushVec, BlockPos pos) {
         double centerCoord;
         if (pushVec.x != 0) {
             // Movimiento en X; fijar Z al centro del bloque actual
@@ -83,7 +105,6 @@ public class ImpulsorHandler {
             // Movimiento en Z; fijar X al centro del bloque actual
             centerCoord = Math.floor(player.getX()) + 0.5;
         }
-        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord,pos));
+        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord, pos));
     }
 }
-

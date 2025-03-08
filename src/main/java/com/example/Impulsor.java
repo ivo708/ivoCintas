@@ -55,42 +55,21 @@ public class Impulsor extends HorizontalFacingBlock {
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
         if (!world.isClient && entity instanceof PlayerEntity) {
-            IvoCintas.LOGGER.info("PISANDO");
             boolean sameAsStart=true;
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             if (ImpulsorHandler.pushingPlayers.containsKey(player.getUuid())) {
-            	sameAsStart= ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos==pos;
+            	IvoCintas.LOGGER.info("PISANDO CONTIENE    X:"+ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos.getX()+" "+pos.getX()+"    Z:"+ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos.getZ()+" "+pos.getZ());
+            	
+            	sameAsStart= (ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos.getX()==pos.getX() && ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos.getY()==pos.getY() && ImpulsorHandler.pushingPlayers.get(player.getUuid()).pos.getZ()==pos.getZ());
                 
             }
+        	IvoCintas.LOGGER.info("contains: "+ImpulsorHandler.pushingPlayers.containsKey(player.getUuid())+" same:"+sameAsStart);
             if(!ImpulsorHandler.pushingPlayers.containsKey(player.getUuid()) || !sameAsStart){
-	            // Se obtiene la dirección en la que apunta el bloque según su propiedad FACING
+            	ImpulsorHandler.pushingPlayers.remove(player.getUuid());
+            	IvoCintas.LOGGER.info("PISANDO NO CONTIENE");
 	            Direction pushDirection = state.get(FACING);
-	            // Magnitud base del empuje (0.5 para un empuje visible; ajústalo si es necesario)
 	            double pushMagnitude = 0.2;
-	            Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ())
-	                    .normalize().multiply(pushMagnitude);
-	            
-	            MinecraftServer server = player.getServer();
-	            
-	            double startX = player.getX();
-	            double startZ = player.getZ();
-	            double targetX = pos.getX() + 0.5;
-	            double targetZ = pos.getZ() + 0.5;
-	            
-	            int steps = 5;
-	            for (int i = 1; i <= steps; i++) {
-	                double progress = (double) i / steps;
-	                double interpolatedX = MathHelper.lerp(progress, startX, targetX);
-	                double interpolatedZ = MathHelper.lerp(progress, startZ, targetZ);
-	                server.execute(() -> {
-	                    if (player.isAlive()) {
-	                        player.teleport(player.getServerWorld(), interpolatedX, player.getY(), interpolatedZ, player.getYaw(), player.getPitch());
-	                    }
-	                });
-	            }
-	
-	            IvoCintas.LOGGER.info("PUSHVEC: x="+pushVec.x+", y="+pushVec.y+", z="+pushVec.z);
-	            // Registramos al jugador para que se impulse y se alinee hacia el centro
+	            Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ()).normalize().multiply(pushMagnitude);
 	            ImpulsorHandler.addPlayer(player, pushVec,pos);
 	        }
         }

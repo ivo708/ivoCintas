@@ -53,41 +53,17 @@ public class Cinta extends HorizontalFacingBlock {
     @Override
     public void onSteppedOn(World world, BlockPos pos, BlockState state, Entity entity) {
         if (!world.isClient && entity instanceof PlayerEntity) {
-            IvoCintas.LOGGER.info("PISANDO");
             boolean sameAsStart=true;
             ServerPlayerEntity player = (ServerPlayerEntity) entity;
             if (CintaHandler.pushingPlayers.containsKey(player.getUuid())) {
-            	sameAsStart= CintaHandler.pushingPlayers.get(player.getUuid()).pos==pos;
-                
+            	sameAsStart= (CintaHandler.pushingPlayers.get(player.getUuid()).pos.getX()==pos.getX() && CintaHandler.pushingPlayers.get(player.getUuid()).pos.getY()==pos.getY() && CintaHandler.pushingPlayers.get(player.getUuid()).pos.getZ()==pos.getZ());                
             }
             if(!CintaHandler.pushingPlayers.containsKey(player.getUuid()) || !sameAsStart){
-	            // Se obtiene la dirección en la que apunta el bloque según su propiedad FACING
+            	CintaHandler.pushingPlayers.remove(player.getUuid());
 	            Direction pushDirection = state.get(FACING);
 	            // Magnitud base del empuje (0.5 para un empuje visible; ajústalo si es necesario)
 	            double pushMagnitude = 0.2;
-	            Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ())
-	                    .normalize().multiply(pushMagnitude);
-	            
-	            MinecraftServer server = player.getServer();
-	            
-	            double startX = player.getX();
-	            double startZ = player.getZ();
-	            double targetX = pos.getX() + 0.5;
-	            double targetZ = pos.getZ() + 0.5;
-	            
-	            int steps = 5;
-	            for (int i = 1; i <= steps; i++) {
-	                double progress = (double) i / steps;
-	                double interpolatedX = MathHelper.lerp(progress, startX, targetX);
-	                double interpolatedZ = MathHelper.lerp(progress, startZ, targetZ);
-	                server.execute(() -> {
-	                    if (player.isAlive()) {
-	                        player.teleport(player.getServerWorld(), interpolatedX, player.getY(), interpolatedZ, player.getYaw(), player.getPitch());
-	                    }
-	                });
-	            }
-	
-	            IvoCintas.LOGGER.info("PUSHVEC: x="+pushVec.x+", y="+pushVec.y+", z="+pushVec.z);
+	            Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ()).normalize().multiply(pushMagnitude);
 	            // Registramos al jugador para que se impulse y se alinee hacia el centro
 	            CintaHandler.addPlayer(player, pushVec,pos);
 	        }
