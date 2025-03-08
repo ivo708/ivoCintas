@@ -65,7 +65,7 @@ public class Cinta extends HorizontalFacingBlock {
 	            double pushMagnitude = 0.2;
 	            Vec3d pushVec = new Vec3d(pushDirection.getOffsetX(), 0, pushDirection.getOffsetZ()).normalize().multiply(pushMagnitude);
 	            // Registramos al jugador para que se impulse y se alinee hacia el centro
-	            CintaHandler.addPlayer(player, pushVec,pos);
+	            CintaHandler.addPlayer(player, pushVec, pos);
 	        }
         }
         super.onSteppedOn(world, pos, state, entity);

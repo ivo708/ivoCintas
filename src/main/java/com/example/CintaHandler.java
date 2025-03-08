@@ -54,9 +54,6 @@ public class CintaHandler {
 
                     // Calculamos el yaw objetivo basado en el vector de empuje
                     float targetYaw = (float)(Math.atan2(pushData.pushVec.z, pushData.pushVec.x) * (180F / Math.PI)) - 90.0F;
-                    if(targetYaw<-90) {
-                    	targetYaw+=360;
-                    }
                     int totalTicks = 5;
                     if (pushData.tickCount < totalTicks) {
                         // Calculamos el progreso de la interpolación (0.0 a 1.0)
@@ -65,7 +62,8 @@ public class CintaHandler {
                         double newX = MathHelper.lerp(progress, pushData.startX, destX);
                         double newZ = MathHelper.lerp(progress, pushData.startZ, destZ);
                         // Interpolamos el yaw desde el yaw inicial hasta el yaw objetivo
-                        float newYaw = MathHelper.lerp((float) progress, pushData.startYaw, targetYaw);
+                        float deltaYaw = MathHelper.wrapDegrees(targetYaw - pushData.startYaw);
+                        float newYaw = (float) (pushData.startYaw + deltaYaw * progress);
                         player.teleport(player.getServerWorld(), newX, playerY, newZ, newYaw,0);
                         pushData.tickCount++;
                     } else {

@@ -19,11 +19,14 @@ public class ImpulsorHandler {
         public final double centerCoord; // Coordenada fija (X o Z) del centro del bloque
         public final BlockPos pos;
         public int tickCount = 0; // Contador de ticks desde que se añade el jugador
+        public final float startYaw;      // Yaw inicial
 
-        public PushData(Vec3d pushVec, double centerCoord, BlockPos pos) {
+        public PushData(PlayerEntity player,Vec3d pushVec, double centerCoord, BlockPos pos) {
             this.pushVec = pushVec;
             this.centerCoord = centerCoord;
             this.pos = pos;
+            this.startYaw = player.getYaw();
+
         }
     }
 
@@ -52,10 +55,9 @@ public class ImpulsorHandler {
         	                double interpolatedX = MathHelper.lerp(progress, playerX, targetX);
         	                double interpolatedZ = MathHelper.lerp(progress, playerZ, targetZ);
         	            	IvoCintas.LOGGER.info("TargetYaw: "+targetYaw);
-        	                double interpolatedYaw = MathHelper.lerp(progress, playerYaw, targetYaw);
-
-        	                
-                        player.teleport(player.getServerWorld(), interpolatedX, playerY, interpolatedZ, (float) interpolatedYaw, 0);
+                            float deltaYaw = MathHelper.wrapDegrees(targetYaw - pushData.startYaw);
+                            float newYaw = (float) (pushData.startYaw + deltaYaw * progress);        	                
+                        player.teleport(player.getServerWorld(), interpolatedX, playerY, interpolatedZ, (float) newYaw, 0);
                         pushData.tickCount++;
                     } else {
                         // Nueva posición basada en el vector de empuje
@@ -105,6 +107,6 @@ public class ImpulsorHandler {
             // Movimiento en Z; fijar X al centro del bloque actual
             centerCoord = Math.floor(player.getX()) + 0.5;
         }
-        pushingPlayers.put(player.getUuid(), new PushData(pushVec, centerCoord, pos));
+        pushingPlayers.put(player.getUuid(), new PushData(player,pushVec, centerCoord, pos));
     }
 }
