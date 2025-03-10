@@ -4,7 +4,7 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"2": "ivocintas:block/freno",
-		"particle": "freno"
+		"particle": "ivocintas:block/freno"
 	},
 	"elements": [
 		{

@@ -1,0 +1,40 @@
+{
+	"credit": "Made with Blockbench",
+	"texture_size": [32, 32],
+	"textures": {
+		"0": "impulsor_vacio_item",
+		"particle": "impulsor_vacio_item"
+	},
+	"elements": [
+		{
+			"from": [0, 0, 0],
+			"to": [16, 8, 16],
+			"faces": {
+				"north": {"uv": [8, 0, 16, 4], "texture": "#0"},
+				"east": {"uv": [8, 4, 16, 8], "texture": "#0"},
+				"south": {"uv": [8, 8, 16, 12], "texture": "#0"},
+				"west": {"uv": [8, 12, 16, 16], "texture": "#0"},
+				"up": {"uv": [8, 8, 0, 0], "texture": "#0"},
+				"down": {"uv": [8, 8, 0, 16], "texture": "#0"}
+			}
+		}
+	],
+	"display": {
+		"thirdperson_righthand": {
+			"scale": [0.31, 0.31, 0.31]
+		},
+		"thirdperson_lefthand": {
+			"scale": [0.26, 0.26, 0.26]
+		},
+		"firstperson_righthand": {
+			"rotation": [0, 0, 53.25],
+			"translation": [3.25, 2, -2.75]
+		},
+		"gui": {
+			"rotation": [97.5, 0, 0]
+		},
+		"fixed": {
+			"rotation": [-84.25, 0, 0]
+		}
+	}
+}

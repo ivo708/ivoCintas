@@ -4,7 +4,7 @@
 	"texture_size": [32, 32],
 	"textures": {
 		"2": "ivocintas:block/impulsor",
-		"particle": "impulsor"
+		"particle": "ivocintas:block/impulsor"
 	},
 	"elements": [
 		{

@@ -3,8 +3,8 @@
 	"parent": "block/cube_all",
 	"texture_size": [32, 32],
 	"textures": {
-		"2": "ivocintas:block/cinta",
-		"particle": "ivocintas:block/cinta"
+		"2": "ivocintas:block/barrierslab",
+		"particle": "ivocintas:block/barrierslab"
 	},
 	"elements": [
 		{
@@ -19,19 +19,5 @@
 				"down": {"uv": [8, 8, 0, 16], "texture": "#2"}
 			}
 		}
-	],
-	"display": {
-		"thirdperson_righthand": {
-			"rotation": [-123.04, -2.36, 179.91],
-			"translation": [0, 2.75, 1],
-			"scale": [0.46, 0.46, 0.46]
-		},
-		"firstperson_righthand": {
-			"rotation": [174.72, -15.38, 160.8],
-			"translation": [5, 3.25, -11.5]
-		},
-		"gui": {
-			"rotation": [89.75, 0, 0]
-		}
-	}
+	]
 }

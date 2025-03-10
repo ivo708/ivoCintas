@@ -1,0 +1,7 @@
+{
+  "variants": {
+    "type=bottom": { "model": "ivocintas:block/barrierslab" },
+    "type=top": { "model": "ivocintas:block/barrierslab", "x": 180 },
+    "type=double": { "model": "minecraft:block/barrierslab_full" }
+  }
+}
